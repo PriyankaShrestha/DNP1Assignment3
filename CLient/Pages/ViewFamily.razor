@@ -1,0 +1,149 @@
+﻿@page "/ViewFamily"
+@using Models
+@using Client.Data.FamilyService
+
+@inject IFamilyService FamilyFile
+@inject NavigationManager NavMgr
+
+<h3>Family Register</h3>
+
+<p>
+    Filter by City: <input type="text" @oninput="@((arg) => FilterByCity(arg))"
+                           style="width:100px"/>
+</p>
+
+@if (filter == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else if (!filter.Any())
+{
+    <p>
+        <em>No Family registered. Please register first.</em>
+    </p>
+}
+else
+{
+    <TableTemplate Items="filter">
+        <TableHeader>
+            <th>City</th>
+            <th>Street Name</th>
+            <th>House Number</th>
+            <th>Floor</th>
+            <th>Number of Adults</th>
+            <th>Number of Children</th>
+            <AuthorizeView Policy="EditorRole">
+                <th>Action</th>
+            </AuthorizeView>
+            <AuthorizeView Policy="AdminRole">
+                <th>Add Member</th>
+            </AuthorizeView>
+
+        </TableHeader>
+        
+        <RowTemplate Context="item">
+            <td>@item.City</td>
+            <td>@item.StreetName</td>
+            <td>@item.HouseNumber</td>
+            <td>@item.Floor</td>
+            <td>@item.Adults.Count 
+                <AuthorizeView>
+                    <Authorized>
+                    <button @onclick="@(() => ShowAdults(item.Address()))">
+                        <i class="oi oi-eye" style="color: #1b6ec2"/>
+                    </button>
+                    </Authorized>
+                </AuthorizeView>
+                </td>
+            <td>@item.Children.Count
+                <AuthorizeView>
+                    <Authorized>
+                        <button @onclick="@(() => ShowChildren(item.Address()))">
+                            <i class="oi oi-eye" style="color: #1b6ec2"/>
+                        </button>
+                    </Authorized>
+                </AuthorizeView>
+                </td>
+            <AuthorizeView Policy="EditorRole">
+                <Authorized>
+                    <td>
+                        <button @onclick="@(() => RemoveFamily(item.Address()))">
+                            <i class="oi oi-trash" style="color: red"/>
+                        </button> | <button @onclick="@(() => EditFamily(item.Address()))">
+                            <i class="oi oi-pencil" style="color: #1b6ec2"/>
+                        </button>
+                    </td>
+                </Authorized>
+            </AuthorizeView>
+            <AuthorizeView Policy="AdminRole">
+                <Authorized>
+                    <td>
+                        <button @onclick="@(() => AddMember(item.Address()))">
+                            <i class="oi oi-person" style="color: #1b6ec2"/>
+                        </button>
+                    </td>
+                </Authorized>
+            </AuthorizeView>
+        </RowTemplate>
+    </TableTemplate>
+}
+
+@code {
+    private IList<Family> toShow;
+    private IList<Family> filter;
+    
+   private string? filterbyCity;
+
+    protected override async Task OnInitializedAsync()
+    {
+        toShow = await FamilyFile.GetFamiliesAsync();
+        filter = toShow;
+    }
+
+    private void AddMember(string address)
+    {
+        NavMgr.NavigateTo($"/AddMember/{address}");
+    }
+
+    private void FilterByCity(ChangeEventArgs evt)
+    {
+        string? filterByCity = null;
+        try
+        {
+            filterByCity = evt.Value.ToString();
+        }
+        catch (Exception e)
+        {}
+        if (filterByCity != null)
+        {
+            filter = toShow.Where(t => t.City == filterByCity).ToList();
+        }
+        else
+        {
+            filter = toShow;
+        }
+    }
+
+    private void ShowAdults(string address)
+    {
+       NavMgr.NavigateTo($"/ViewAdults/{address}");
+    }
+
+    private void ShowChildren(string address)
+    {
+        NavMgr.NavigateTo($"/ViewChildren/{address}");
+    }
+
+    private void RemoveFamily(string address)
+    {
+        FamilyFile.RemoveFamilyAsync(address);
+    }
+
+    private void EditFamily(string address)
+    {
+        NavMgr.NavigateTo($"/EditFamily/{address}");
+    }
+
+}

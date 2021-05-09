@@ -1,0 +1,76 @@
+﻿@page "/EditAdult/{Address}/{AdultId:int}"
+@attribute [Authorize(Policy = "EditorRole")]
+@using Models
+@using Client.Data.AdultService
+
+@inject IAdultService AdultFile
+@inject NavigationManager NavMgr
+
+<h3>Edit Adult</h3>
+
+<Authorized>
+    @if (personToEdit == null)
+        {
+            <em>Person is not registered!</em>
+        }
+        else
+        {
+            <EditForm Model="@personToEdit" OnValidSubmit="@Save">
+                <DataAnnotationsValidator/>
+                <ValidationSummary/>
+                <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label">First Name:</label>
+                    <InputText class="col-sm-6 form-control" @bind-Value="@personToEdit.FirstName"/>
+                </div>
+                <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label">Last Name:</label>
+                    <InputText class="col-sm-6 form-control" @bind-Value="@personToEdit.LastName"/>
+                </div>
+                <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label">Hair Color:</label>
+                    <InputText class="col-sm-6 form-control" @bind-Value="@personToEdit.HairColor"/>
+                </div>
+                <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label">Eye Color:</label>
+                    <InputText class="col-sm-6 form-control" @bind-Value="@personToEdit.EyeColor"/>
+                </div>
+                <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label">Age:</label>
+                    <InputNumber class="col-sm-6 form-control" @bind-Value="@personToEdit.Age"/>
+                </div>
+                <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label">Weight:</label>
+                    <InputNumber class="col-sm-6 form-control" @bind-Value="@personToEdit.Weight"/>
+                </div>
+                <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label">Height:</label>
+                    <InputNumber class="col-sm-6 form-control" @bind-Value="@personToEdit.Height"/>
+                </div>
+                <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label">Gender:</label>
+                    <InputText class="col-sm-6 form-control" @bind-Value="@personToEdit.Sex"/>
+                </div>
+                <p class="actions">
+                    <button class="btn-primary btn-outline-dark" type="submit">Save</button>
+                </p>
+            </EditForm>
+        }
+</Authorized>
+
+@code {
+    [Parameter] public string Address { get; set; }
+    [Parameter] public int AdultId { get; set; }
+
+    private Adult personToEdit;
+
+   protected override async Task OnInitializedAsync()
+    {
+       personToEdit = await AdultFile.GetAdultAsync(AdultId, Address);
+    }
+
+    private void Save()
+    {
+        AdultFile.UpdateAdultAsync(personToEdit, Address);
+        NavMgr.NavigateTo($"/ViewAdults/{Address}");
+    }
+}

@@ -1,0 +1,24 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavMgr
+
+<div class="main">
+    <NavMenu/>
+    <div class="content px-4">
+        @Body
+    </div>
+</div>
+
+@code{
+
+    [CascadingParameter] protected Task<AuthenticationState> AuthStat { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+        var user = (await AuthStat).User;
+        if (!user.Identity.IsAuthenticated)
+        {
+            NavMgr.NavigateTo($"/Login");
+        }
+    }
+}

@@ -1,0 +1,116 @@
+﻿@page "/ViewChildren/{Address}"
+@using Models
+@using Client.Data.ChildrenService
+
+@inject IChildrenService ChildrenFile
+@inject NavigationManager NavMgr
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>View Children</h3>
+
+<p>
+    Filter by First Name: <input type="text" @oninput="@((arg) => FilterByName(arg))"
+                              style="width:100px"/>
+</p>
+
+@if (personToShow == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else if (!personToShow.Any())
+{
+    <p>
+        <em>No Person registered. Please register first.</em>
+    </p>
+}
+else
+{
+    <TableTemplate Items="personToShow">
+        <TableHeader>
+            <th>CPR Number</th>
+            <th>First Name</th>
+            <th>LastName</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Height</th>
+            <th>Weight</th>
+            <th>Hair Color</th>
+            <th>Eye Color</th>
+            <AuthorizeView Policy="EditorRole">
+                <th>Action</th>
+            </AuthorizeView>
+        </TableHeader>
+        
+        <RowTemplate Context="item">
+            <td>@item.CPRNumber</td>
+            <td>@item.FirstName</td>
+            <td>@item.LastName</td>
+            <td>@item.Age</td>
+            <td>@item.Sex</td>
+            <td>@item.Height</td>
+            <td>@item.Weight</td>
+            <td>@item.HairColor</td>
+            <td>@item.EyeColor</td>
+            <AuthorizeView Policy="EditorRole">
+                <Authorized>
+                <td>
+                    <button @onclick="@(() => RemovePerson(item.CPRNumber))">
+                        <i class="oi oi-trash" style="color: red"/>
+                    </button> |
+                    <button @onclick="@(() => Edit(item.CPRNumber))">
+                        <i class="oi oi-pencil" style="color: #1b6ec2"/>
+                    </button>
+                </td>
+                </Authorized>
+            </AuthorizeView>
+        </RowTemplate>
+    </TableTemplate>
+}
+
+@code {
+    [Parameter] public string Address { get; set; }
+    private IList<Child> children;
+    private IList<Child> personToShow;
+    private string? filterbyName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        children = await ChildrenFile.GetChildrenAsync(Address);
+        personToShow = children;
+    }
+
+    private void FilterByName(ChangeEventArgs evt)
+    {
+        string? filterByName = null;
+        try
+        {
+            filterByName = evt.Value.ToString();
+        }
+        catch (Exception e)
+        {
+        }
+        if (filterByName != null)
+        {
+            personToShow = children.Where(t => t.FirstName == filterByName).ToList();
+        }
+        else
+        {
+            personToShow = children;
+        }
+    }
+
+    private void Edit(int id)
+    {
+        //NavMgr.NavigateTo($"/EditPerson/{id}");
+    }
+
+    private void RemovePerson(int id)
+    {
+        Child ToRemove = children.First(t => t.CPRNumber == id);
+        ChildrenFile.RemoveChildAsync(ToRemove, Address);
+        children.Remove(ToRemove);
+        personToShow.Remove(ToRemove);
+    }
+}

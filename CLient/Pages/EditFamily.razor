@@ -1,0 +1,57 @@
+﻿@page "/EditFamily/{Address}"
+@using Models
+@using Client.Data.FamilyService
+
+@attribute [Authorize(Policy = "EditorRole")]
+@inject IFamilyService FamilyFile
+@inject NavigationManager NavMgr
+
+<h3>Edit Family with @Address</h3>
+
+@if (familyToEdit == null)
+    {
+        <em>Family is not registered!</em>
+    }
+else
+    {
+        <EditForm Model="@familyToEdit" OnValidSubmit="@Save">
+            <DataAnnotationsValidator/>
+            <ValidationSummary/>
+            <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">Floor:</label>
+                <InputText class="col-sm-6 form-control" @bind-Value="@familyToEdit.Floor"/>
+                </div>
+                <div class="form-group row">
+                     <label class="col-sm-2 col-form-label">House Number:</label>
+                    <InputNumber class="col-sm-6 form-control" @bind-Value="@familyToEdit.HouseNumber"/>
+                </div>
+                <div class="form-group row">
+                         <label class="col-sm-2 col-form-label">Street Name:</label>
+                    <InputText class="col-sm-6 form-control" @bind-Value="@familyToEdit.StreetName"/>
+                </div>
+                <div class="form-group row">
+                         <label class="col-sm-2 col-form-label">City:</label>
+                    <InputText class="col-sm-6 form-control" @bind-Value="@familyToEdit.City"/>
+                </div>
+                <p class="actions">
+                    <button class="btn-primary btn-outline-dark" type="submit">Save</button>
+                </p>
+        </EditForm>
+    }
+
+@code {
+    [Parameter] public string Address { get; set; }
+    
+    private Family familyToEdit;
+
+    protected override async Task OnInitializedAsync()
+    {
+        familyToEdit = await FamilyFile.GetFamilyAsync(Address);
+    }
+
+    private void Save()
+    {
+        FamilyFile.UpdateFamilyAsync(Address, familyToEdit);
+        NavMgr.NavigateTo("/ViewFamily");
+    }
+}

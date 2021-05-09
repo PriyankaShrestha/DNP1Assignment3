@@ -1,0 +1,62 @@
+﻿@using Client.Authentication
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavMgr
+
+<nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href=""></a>
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="@NavMenuCssClass mr-auto" @onclick="ToggleNavMenu">
+        <div class="nav nav-tabs">
+            <a class="nav-item nav-link" href="">Home</a>
+            <AuthorizeView Policy="AdminRole">
+                <a class="nav-item nav-link" href="NewFamily">Register Family </a>
+            </AuthorizeView>
+            <a class="nav-item nav-link" href="ViewFamily">View Family</a>
+        </div>
+    </div>
+    <span class="navbar-text">
+        <AuthorizeView>
+            <NotAuthorized>
+                <a href="" @onclick="PerformLogin">
+                    Login
+                </a>
+            </NotAuthorized>
+            <Authorized>
+                <a href="" @onclick="PerformLogout">
+                    Logout
+                </a>
+            </Authorized>
+        </AuthorizeView>
+    </span>
+</nav>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    private void PerformLogin()
+    {
+        NavMgr.NavigateTo("/Login");
+    }
+
+    private void PerformLogout()
+    {
+        try
+        {
+            ((CustomAuthenticationStateProvider) AuthenticationStateProvider).Logout();
+            NavMgr.NavigateTo("/Login");
+        }
+        catch (Exception e)
+        {
+        }
+    }
+
+}

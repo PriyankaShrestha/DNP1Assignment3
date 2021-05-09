@@ -1,0 +1,120 @@
+﻿@page "/AddMember/{Address}"
+@attribute [Authorize(Policy = "AdminRole")]
+@using Models
+@using Client.Data.ChildrenService
+@using Client.Data.AdultService
+@using Client.Data.FamilyService
+
+@inject IChildrenService ChildrenFile
+@inject IAdultService AdultFile
+@inject IFamilyService FamilyFile
+@inject NavigationManager NavMgr
+
+<h3>Add Member:@Address</h3>
+ @if (family == null)
+    {
+        <em>Person is not registered!</em>
+    }
+ else
+ {
+     <p>Catagory
+         <select class="form-control-selectpicker" @onchange="@((arg) => AddSelected(arg))"
+                 style="width:100px">
+             <option>Adult</option>
+             <option>Child</option>
+         </select>
+     </p>
+
+     <EditForm Model="@newPerson" OnValidSubmit="@Execute">
+         <DataAnnotationsValidator/>
+         <ValidationSummary/>
+         <div class="form-group row">
+                 <label class="col-sm-2 col-form-label">CPR Number:</label>
+             <InputNumber class="col-sm-6 form-control" @bind-Value="@newPerson.CPRNumber"/>
+         </div>
+         <div class="form-group row">
+                 <label class="col-sm-2 col-form-label">First Name:</label>
+             <InputText class="col-sm-6 form-control" @bind-Value="@newPerson.FirstName"/>
+         </div>
+         <div class="form-group row">
+                 <label class="col-sm-2 col-form-label">Last Name:</label>
+             <InputText class="col-sm-6 form-control" @bind-Value="@newPerson.LastName"/>
+         </div>
+         <div class="form-group row">
+                 <label class="col-sm-2 col-form-label">Hair Color:</label>
+             <InputText class="col-sm-6 form-control" @bind-Value="@newPerson.HairColor"/>
+         </div>
+         <div class="form-group row">
+                 <label class="col-sm-2 col-form-label">Eye Color:</label>
+             <InputText class="col-sm-6 form-control" @bind-Value="@newPerson.EyeColor"/>
+         </div>
+         <div class="form-group row">
+                 <label class="col-sm-2 col-form-label">Age:</label>
+             <InputNumber class="col-sm-6 form-control" @bind-Value="@newPerson.Age"/>
+         </div>
+         <div class="form-group row">
+                 <label class="col-sm-2 col-form-label">Weight:</label>
+             <InputNumber class="col-sm-6 form-control" @bind-Value="@newPerson.Weight"/>
+         </div>
+         <div class="form-group row">
+                 <label class="col-sm-2 col-form-label">Height:</label>
+             <InputNumber class="col-sm-6 form-control" @bind-Value="@newPerson.Height"/>
+         </div>
+         <div class="form-group row">
+                 <label class="col-sm-2 col-form-label">Gender:</label>
+             <InputText class="col-sm-6 form-control" @bind-Value="@newPerson.Sex"/>
+         </div>
+         <p class="actions">
+             <button class="btn-primary btn-outline-dark" type="submit">Add Member</button>
+         </p>
+     </EditForm>
+ }
+
+@code {
+    [Parameter] public string Address { get; set; }
+    private Person newPerson = new();
+    private string e;
+    private Family family;
+
+    protected override async Task OnInitializedAsync()
+    {
+        family = await FamilyFile.GetFamilyAsync(Address);
+    }
+    
+    private void AddNewAdult()
+    {
+       AdultFile.AddAdultAsync((Adult)newPerson, Address);
+        Console.WriteLine(newPerson);
+    }
+    
+    private void AddNewChild()
+    {
+        ChildrenFile.AddChildAsync((Child)newPerson, Address);
+    }
+
+    private void AddSelected(ChangeEventArgs evt)
+    {
+        e = evt.Value.ToString();
+        if (e.Equals("Child"))
+        {
+            newPerson = new Child();
+        }
+        else
+        {
+            newPerson = new Adult();
+        }
+    }
+
+    private void Execute()
+    {
+        if(e.Equals("Child"))
+        {
+            AddNewChild();
+        }
+        else
+        {
+            AddNewAdult();
+        }
+        NavMgr.NavigateTo("/ViewFamily");
+    }
+}
